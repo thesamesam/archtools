@@ -94,8 +94,18 @@ def start_working(bug, num):
     print("[bug #{0}] has atoms:".format(num))
     print(bug.atoms)
     print(bug)
+
+    count = 0
     for atom in bug.atoms.split("\r\n"):
-        oneshot_msg(num, "atom <{0}>".format(atom.split()[0]))
+        if count > 4:
+           oneshot_msg(num, "... truncated list")
+           break
+
+        name = atom.split(" ")[0]
+        if name:
+            oneshot_msg(num, "atom <{0}>".format(name))
+
+        count += 1
 
     # Mark that we're working on this bug
     reserve_bug(num)
