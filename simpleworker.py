@@ -27,17 +27,17 @@ irker_listener = ("127.0.0.1", 6659)
 irker_spigot   = "irc://irc.freenode.net:6667/##test-arch-simpleworker"
 
 # Setup Nattka
-nattka_bugzilla = NattkaBugzilla(
-                        api_url="{0}/rest".format(bugzilla_url),
-                        api_key=bugzilla_api_key
-)
+def get_bugs():
+	nattka_bugzilla = NattkaBugzilla(
+        	                api_url="{0}/rest".format(bugzilla_url),
+                	        api_key=bugzilla_api_key
+	)
 
-bugs = nattka_bugzilla.find_bugs(
-                        unresolved=True, sanity_check=[True],
-                        cc=["{0}@gentoo.org".format(arch)],
-                        skip_tags="{0}: {1}".format(skip_tag_prefix, arch)
-)
+	bugs = nattka_bugzilla.find_bugs(
+        	                unresolved=True, sanity_check=[True]
+	)
 
+	return bugs
 
 def oneshot_msg(num, message):
     # Send a one-off message to IRC via Irker
@@ -53,13 +53,12 @@ def oneshot_msg(num, message):
     sock.sendto(json_msg.encode("utf8"), irker_listener)
     sock.close()
 
-
 def bug_ready(bug, num):
     # Is our arch involved in this bug?
     # If not, skip it
-    if not "{0}@gentoo.org".format(arch) in bug.cc:
-        print("[bug #{0}] not in CC; skipping".format(num))
-        return False
+    #if not "{0}@gentoo.org".format(arch) in bug.cc:
+    #    print("[bug #{0}] not in CC; skipping".format(num))
+    #    return False
 
     # Skip if any blocker bugs
     # TODO: this should maybe be more intelligent
@@ -215,7 +214,7 @@ def parse_report(bug, num, tatt_base):
 
 
 def worker_loop():
-    for num, bug in bugs.items():
+    for num, bug in get_bugs().items():
         print("[bug #{0}] checking bug".format(num))
 
         if not bug_ready(bug, num):
@@ -243,9 +242,9 @@ def worker_loop():
         # By this point, we should be good to proceed
         start_working(bug, num)
 
-
-try:
-    worker_loop()
-except Exception as e:
-    oneshot_msg("0", "croaking due to exception '{0}'".format(e))
-    raise e
+if __name__ == "__main__":
+	try:
+	    worker_loop()
+	except Exception as e:
+	    oneshot_msg("0", "croaking due to exception '{0}'".format(e))
+	    raise e
