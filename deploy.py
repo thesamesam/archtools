@@ -51,7 +51,7 @@ class BugHandler:
 		# Irker configuration
 		irker_listener = ("127.0.0.1", 6659)
 		irker_spigot   = "irc://irc.freenode.net:6667/##test-arch-simpleworker"
-		message = "[{0}]: bug #{1} - {2}".format(self.queue, num, message)
+		message = "\x0314[{0}]: \x0305bug #{1}\x0F - {2}".format(self.queue, num, message)
 
 		# See https://manpages.debian.org/testing/irker/irkerd.8.en.html
 		json_msg = json.JSONEncoder().encode(
@@ -69,7 +69,7 @@ class BugHandler:
 		print("[bug #{0}] has atoms:".format(num))
 		print(self.atoms)
 
-		self.oneshot_msg(num, "arch '{0}' starting work".format(self.queue))
+		self.oneshot_msg(num, "\x16arch '{0}' starting work\x0F".format(self.queue))
 
 		count = 0
 		for atom in self.atoms.split("\r\n"):
@@ -77,9 +77,9 @@ class BugHandler:
 				self.oneshot_msg(num, "... truncated list")
 				break
 
-			name = atom.split(" ")[0]
+			name = atom.split(" ")[0].lstrip('=~<>')
 			if name:
-				self.oneshot_msg(num, "atom <{0}>".format(name))
+				self.oneshot_msg(num, "atom <\x02{0}\x02>".format(name))
 				count += 1
 
 			# Useful
@@ -99,7 +99,7 @@ class BugHandler:
 
 			# Run useflags.sh
 			print("[bug #{0}] running useflags.sh".format(num))
-			self.oneshot_msg(num, "running useflags.sh")
+			self.oneshot_msg(num, "\x0314running useflags.sh\x0F")
 			self.process = subprocess.run("./{0}-useflags.sh".format(tatt_base),
 										  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
 
@@ -107,12 +107,12 @@ class BugHandler:
 			rdeps_path = "{0}-rdeps.sh".format(tatt_base)
 			if os.path.isfile(rdeps_path):
 				print("[bug #{0}] running rdeps.sh".format(num))
-				self.oneshot_msg(num, "running rdeps.sh")
+				self.oneshot_msg(num, "\x0314running rdeps.sh\x0F")
 				self.process = subprocess.run("./{0}".format(rdeps_path),
 											  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
 			else:
 				print("[bug #{0}] no rdeps.sh:".format(num))
-				self.oneshot_msg(num, "no rdeps.sh")
+				self.oneshot_msg(num, "\x0302no rdeps.sh\x0F")
 		except Exception as e:
 			if self.process and hasattr(self.process, 'terminate'):
 				self.process.terminate()
@@ -195,8 +195,12 @@ class BugHandler:
 				if results[part]["lines"] > 0:
 					print("[bug #{0}] {1}".format(num, summary))
 					self.oneshot_msg(num, "{0} test complete:".format(part))
-					self.oneshot_msg(num, "> succeeded: {0:>3}, failed: "
-									 "{1:>3}".format(success, total_failure))
+					if total_failure > 0:
+						self.oneshot_msg(num, "> succeeded: {0:>3},\x0304 failed: "
+									"{1:>3}\x03".format(success, total_failure))
+					else:
+						self.oneshot_msg(num, ">\x0303 succeeded: {0:>3}\x03, failed: "
+									"{1:>3}".format(success, total_failure))
 					self.oneshot_msg(num, "> slot conflict: {0:>3}, blocker: "
 									 "{1:>3}".format(slot_conflict, blocked))
 					self.oneshot_msg(num, "> test dep fail: {0:>3}, unknown: "
