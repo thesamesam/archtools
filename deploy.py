@@ -103,7 +103,7 @@ class BugHandler:
 			self.process = subprocess.run("./{0}-useflags.sh".format(tatt_base),
 										  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
 
-			self.parse_report(self.bug, num, tatt_base)
+			fails_use = self.parse_report(self.bug, num, tatt_base)
 
 			# Sometimes run rdeps (they don't always exist)
 			rdeps_path = "{0}-rdeps.sh".format(tatt_base)
@@ -112,10 +112,16 @@ class BugHandler:
 				self.oneshot_msg(num, "\x0314running rdeps.sh\x0F")
 				self.process = subprocess.run("./{0}".format(rdeps_path),
 											  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
-				self.parse_report(self.bug, num, tatt_base)
+				fails_rdep = self.parse_report(self.bug, num, tatt_base)
 			else:
 				print("[bug #{0}] no rdeps.sh:".format(num))
 				self.oneshot_msg(num, "\x0302no rdeps.sh\x0F")
+
+			if fails_use > 0 or (fails_rdep and fails_rdep > 0):
+				self.oneshot_msg(num, "\x0303\x16FINISHED - Good\x0F")
+			else
+				self.oneshot_msg(num, "\x0304\x16FINISHED - Bad\x0F")
+
 		except Exception as e:
 			if self.process and hasattr(self.process, 'terminate'):
 				self.process.terminate()
@@ -191,3 +197,5 @@ class BugHandler:
 		if part = "USE":
 			with open(report_path, "w") as report:
 				report.truncate()
+
+		return total_failure
