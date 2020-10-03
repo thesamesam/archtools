@@ -103,6 +103,8 @@ class BugHandler:
 			self.process = subprocess.run("./{0}-useflags.sh".format(tatt_base),
 										  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
 
+			self.parse_report(self.bug, num, tatt_base)
+
 			# Sometimes run rdeps (they don't always exist)
 			rdeps_path = "{0}-rdeps.sh".format(tatt_base)
 			if os.path.isfile(rdeps_path):
@@ -110,6 +112,7 @@ class BugHandler:
 				self.oneshot_msg(num, "\x0314running rdeps.sh\x0F")
 				self.process = subprocess.run("./{0}".format(rdeps_path),
 											  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
+				self.parse_report(self.bug, num, tatt_base)
 			else:
 				print("[bug #{0}] no rdeps.sh:".format(num))
 				self.oneshot_msg(num, "\x0302no rdeps.sh\x0F")
@@ -118,31 +121,15 @@ class BugHandler:
 				self.process.terminate()
 				raise
 
-		self.parse_report(self.bug, num, tatt_base)
 
 	def parse_report(self, bug, num, tatt_base):
 		report_path = tatt_base + ".report"
 
 		part = ""
-		results = {
-			"USE": {
-				"test_dep_failure": 0,
-				"slot_conflict": 0,
-				"blocked": 0,
-				"failure": 0,
-				"lines": 0
-			},
-			"revdep": {
-				"test_dep_failure": 0,
-				"slot_conflict": 0,
-				"blocked": 0,
-				"failure": 0,
-				"lines": 0
-			},
-		}
+		res = {}
 
 		with open(report_path, "r") as report:
-			for line in report.readlines():
+			for line in report:
 				if "USE tests started" in line:
 					part = "USE"
 					continue
@@ -155,54 +142,52 @@ class BugHandler:
 					print("[bug #{0}] report file parsing failed".format(num))
 					break
 
-				results[part]["lines"] += 1
+				res["lines"] = res.get("lines", 0) + 1
 
-				# Assume we're in the "USE tests" part until we get
-				# a line telling us we're not.
 				if "merging test dependencies" in line:
 					print("[bug #{0}] failed to merge test dependencies"
 						  " in {1} phase".format(num, part))
-					results[part]["test_dep_failure"] += 1
+					res["test_dep"] = res.get("test_dep", 0) + 1
 				elif "slot conflict" in line:
 					print("[bug #{0}] hit a slot conflict in {1}"
 						  " phase".format(num, part))
-					results[part]["slot_conflict"] += 1
+					res["slot_conflict"] = res.get("slot_conflict", 0) + 1
 				elif "blocked" in line:
 					print("[bug #{0}] hit a blocker in {1}"
 						  " phase".format(num, part))
-					results[part]["blocked"] += 1
+					res["blocked"] = res.get("blocked", 0) + 1
 				elif "failed" in line:
 					print("[bug #{0}] failed for unknown reasons in {1}"
 						  " phase".format(num, part))
-					results[part]["failure"] += 1
+					res["unknown"] = res.get("unknown", 0) + 1
 
-			for part in ["USE", "revdep"]:
-				test_dep_failure = results[part]["test_dep_failure"]
-				slot_conflict = results[part]["slot_conflict"]
-				unknown_failure = results[part]["failure"]
-				blocked = results[part]["blocked"]
-				total_failure = (test_dep_failure + slot_conflict +
-								 unknown_failure + blocked)
-				success = results[part]["lines"] - total_failure
+			if res["lines"] > 0:
+				total_failure = (res["test_dep"] + res["slot_conflict"] +
+								 res["unknown"] + res["blocked"])
+				success = res["lines"] - total_failure
 
 				summary = ("[{0}] succeeded: {1}, test dep fail: {2},"
 						   "slot conflict: {3}, blocked: {4}, unknown:"
-						   " {5}".format(part, success, test_dep_failure,
-										 slot_conflict, blocked, unknown_failure
-						   )
+						   " {5}".format(part, success, res["test_dep"],
+										 res["slot_conflict"],
+										 res["blocked"], res["unknown"])
 				)
 
-				if results[part]["lines"] > 0:
-					print("[bug #{0}] {1}".format(num, summary))
-					self.oneshot_msg(num, "{0} test complete:".format(part))
-					if total_failure > 0:
-						self.oneshot_msg(num, "> succeeded: {0:>3},\x0304 failed: "
-									"{1:>3}\x03".format(success, total_failure))
-					else:
-						self.oneshot_msg(num, ">\x0303 succeeded: {0:>3}\x03, failed: "
-									"{1:>3}".format(success, total_failure))
-					self.oneshot_msg(num, "> slot conflict: {0:>3}, blocker: "
-									 "{1:>3}".format(slot_conflict, blocked))
-					self.oneshot_msg(num, "> test dep fail: {0:>3}, unknown: "
-									 "{1:>3}".format(test_dep_failure,
-													 unknown_failure))
+				print("[bug #{0}] {1}".format(num, summary))
+				self.oneshot_msg(num, "{0} test complete:".format(part))
+				if total_failure > 0:
+					self.oneshot_msg(num, "> succeeded: {0:>3},\x0304 failed: "
+								"{1:>3}\x03".format(success, total_failure))
+				else:
+					self.oneshot_msg(num, ">\x0303 succeeded: {0:>3}\x03, failed: "
+								"{1:>3}".format(success, total_failure))
+				self.oneshot_msg(num, "> slot conflict: {0:>3}, blocker: "
+								 "{1:>3}".format(res["slot_conflict"],
+												 res["blocked"))
+				self.oneshot_msg(num, "> test dep fail: {0:>3}, unknown: "
+								 "{1:>3}".format(res["test_dep"],
+												 res["unknown"]))
+
+		if part = "USE":
+			with open(report_path, "w") as report:
+				report.truncate()
