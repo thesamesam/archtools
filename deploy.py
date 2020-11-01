@@ -119,7 +119,7 @@ class BugHandler:
 
 			if fails_use > 0 or (fails_rdep and fails_rdep > 0):
 				self.oneshot_msg(num, "\x0303\x16FINISHED - Good\x0F")
-			else
+			else:
 				self.oneshot_msg(num, "\x0304\x16FINISHED - Bad\x0F")
 
 		except Exception as e:
@@ -189,12 +189,12 @@ class BugHandler:
 								"{1:>3}".format(success, total_failure))
 				self.oneshot_msg(num, "> slot conflict: {0:>3}, blocker: "
 								 "{1:>3}".format(res["slot_conflict"],
-												 res["blocked"))
+												 res["blocked"]))
 				self.oneshot_msg(num, "> test dep fail: {0:>3}, unknown: "
 								 "{1:>3}".format(res["test_dep"],
 												 res["unknown"]))
 
-		if part = "USE":
+		if part == "USE":
 			with open(report_path, "w") as report:
 				report.truncate()
 
