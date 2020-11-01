@@ -132,7 +132,13 @@ class BugHandler:
 		report_path = tatt_base + ".report"
 
 		part = ""
-		res = {}
+		res = {
+				"lines": 0,
+				"test_dep": 0,
+				"slot_conflict": 0,
+				"blocked": 0,
+				"unknown": 0,
+		}
 
 		with open(report_path, "r") as report:
 			for line in report:
@@ -148,24 +154,23 @@ class BugHandler:
 					print("[bug #{0}] report file parsing failed".format(num))
 					break
 
-				res["lines"] = res.get("lines", 0) + 1
-
+				res["lines"] += 1
 				if "merging test dependencies" in line:
 					print("[bug #{0}] failed to merge test dependencies"
 						  " in {1} phase".format(num, part))
-					res["test_dep"] = res.get("test_dep", 0) + 1
+					res["test_dep"] += 1
 				elif "slot conflict" in line:
 					print("[bug #{0}] hit a slot conflict in {1}"
 						  " phase".format(num, part))
-					res["slot_conflict"] = res.get("slot_conflict", 0) + 1
+					res["slot_conflict"] += 1
 				elif "blocked" in line:
 					print("[bug #{0}] hit a blocker in {1}"
 						  " phase".format(num, part))
-					res["blocked"] = res.get("blocked", 0) + 1
+					res["blocked"] += 1
 				elif "failed" in line:
 					print("[bug #{0}] failed for unknown reasons in {1}"
 						  " phase".format(num, part))
-					res["unknown"] = res.get("unknown", 0) + 1
+					res["unknown"] += 1
 
 			if res["lines"] > 0:
 				total_failure = (res["test_dep"] + res["slot_conflict"] +
