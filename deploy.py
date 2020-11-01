@@ -177,7 +177,7 @@ class BugHandler:
 								 res["unknown"] + res["blocked"])
 				success = res["lines"] - total_failure
 
-				summary = ("[{0}] succeeded: {1}, test dep fail: {2},"
+				summary = ("[{0}] succeeded: {1}, test dep fail: {2}, "
 						   "slot conflict: {3}, blocked: {4}, unknown:"
 						   " {5}".format(part, success, res["test_dep"],
 										 res["slot_conflict"],
