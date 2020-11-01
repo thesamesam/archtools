@@ -103,7 +103,7 @@ class BugHandler:
 			self.process = subprocess.run("./{0}-useflags.sh".format(tatt_base),
 										  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
 
-			fails_use = self.parse_report(self.bug, num, tatt_base)
+			fails_use = self.parse_report(num, tatt_base)
 
 			# Sometimes run rdeps (they don't always exist)
 			rdeps_path = "{0}-rdeps.sh".format(tatt_base)
@@ -112,7 +112,7 @@ class BugHandler:
 				self.oneshot_msg(num, "\x0314running rdeps.sh\x0F")
 				self.process = subprocess.run("./{0}".format(rdeps_path),
 											  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
-				fails_rdep = self.parse_report(self.bug, num, tatt_base)
+				fails_rdep = self.parse_report(num, tatt_base)
 			else:
 				print("[bug #{0}] no rdeps.sh:".format(num))
 				self.oneshot_msg(num, "\x0302no rdeps.sh\x0F")
@@ -128,7 +128,7 @@ class BugHandler:
 				raise
 
 
-	def parse_report(self, bug, num, tatt_base):
+	def parse_report(self, num, tatt_base):
 		report_path = tatt_base + ".report"
 
 		part = ""
