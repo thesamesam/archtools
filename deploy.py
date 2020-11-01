@@ -137,7 +137,7 @@ class BugHandler:
 				"test_dep": 0,
 				"slot_conflict": 0,
 				"blocked": 0,
-				"unknown": 0,
+				"other": 0,
 		}
 
 		with open(report_path, "r") as report:
@@ -168,20 +168,20 @@ class BugHandler:
 						  " phase".format(num, part))
 					res["blocked"] += 1
 				elif "failed" in line:
-					print("[bug #{0}] failed for unknown reasons in {1}"
+					print("[bug #{0}] failed for other reasons in {1}"
 						  " phase".format(num, part))
-					res["unknown"] += 1
+					res["other"] += 1
 
 			if res["lines"] > 0:
 				total_failure = (res["test_dep"] + res["slot_conflict"] +
-								 res["unknown"] + res["blocked"])
+								 res["other"] + res["blocked"])
 				success = res["lines"] - total_failure
 
 				summary = ("[{0}] succeeded: {1}, test dep fail: {2}, "
-						   "slot conflict: {3}, blocked: {4}, unknown:"
+						   "slot conflict: {3}, blocked: {4}, other:"
 						   " {5}".format(part, success, res["test_dep"],
 										 res["slot_conflict"],
-										 res["blocked"], res["unknown"])
+										 res["blocked"], res["other"])
 				)
 
 				print("[bug #{0}] {1}".format(num, summary))
@@ -195,9 +195,9 @@ class BugHandler:
 				self.oneshot_msg(num, "> slot conflict: {0:>3}, blocker: "
 								 "{1:>3}".format(res["slot_conflict"],
 												 res["blocked"]))
-				self.oneshot_msg(num, "> test dep fail: {0:>3}, unknown: "
+				self.oneshot_msg(num, "> test dep fail: {0:>3}, other:  "
 								 "{1:>3}".format(res["test_dep"],
-												 res["unknown"]))
+												 res["other"]))
 
 		if part == "USE":
 			with open(report_path, "w") as report:
