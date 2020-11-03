@@ -199,8 +199,6 @@ class BugHandler:
 								 "{1:>3}".format(res["test_dep"],
 												 res["other"]))
 
-		if part == "USE":
-			with open(report_path, "w") as report:
-				report.truncate()
+		os.rename(report_path, report_path + "." + part)
 
 		return total_failure
