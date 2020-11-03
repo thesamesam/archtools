@@ -134,14 +134,18 @@ class BugHandler:
 		part = ""
 		res = {
 				"lines": 0,
+				"use_dep": 0,
 				"test_dep": 0,
 				"slot_conflict": 0,
 				"blocked": 0,
+				"use_comb": 0,
+				"feat_test": 0,
 				"other": 0,
 		}
 
 		with open(report_path, "r") as report:
 			for line in report:
+				line = lstrip(line)
 				if "USE tests started" in line:
 					part = "USE"
 					continue
@@ -154,8 +158,13 @@ class BugHandler:
 					print("[bug #{0}] report file parsing failed".format(num))
 					break
 
-				res["lines"] += 1
-				if "merging test dependencies" in line:
+				if "succeeded" in line:
+					res["lines"] += 1
+				elif "USE dependencies not satisfied" in line:
+					print("[bug #{0]}] USE deps not satisfied in {1}"
+						  " phase",format(num, part))
+					res["use_dep"] += 1
+				elif "merging test dependencies" in line:
 					print("[bug #{0}] failed to merge test dependencies"
 						  " in {1} phase".format(num, part))
 					res["test_dep"] += 1
@@ -168,18 +177,26 @@ class BugHandler:
 						  " phase".format(num, part))
 					res["blocked"] += 1
 				elif "failed" in line:
-					print("[bug #{0}] failed for other reasons in {1}"
+					if line.startswith("USE"):
+						reason = "USE combination"
+						res["use_comb"] += 1
+					elif line.startswith("FEATURES"):
+						reason = "tests"
+						res["feat_test"] += 1
+					else:
+						reason = "other reasons"
+						res["other"] += 1
+					print("[bug #{0}] failed for {2} in {1}"
 						  " phase".format(num, part))
-					res["other"] += 1
 
 			if res["lines"] > 0:
 				total_failure = (res["test_dep"] + res["slot_conflict"] +
 								 res["other"] + res["blocked"])
-				success = res["lines"] - total_failure
+				# success = res["lines"] - total_failure
 
 				summary = ("[{0}] succeeded: {1}, test dep fail: {2}, "
 						   "slot conflict: {3}, blocked: {4}, other:"
-						   " {5}".format(part, success, res["test_dep"],
+						   " {5}".format(part, res["lines"], res["test_dep"],
 										 res["slot_conflict"],
 										 res["blocked"], res["other"])
 				)
@@ -188,10 +205,10 @@ class BugHandler:
 				self.oneshot_msg(num, "{0} test complete:".format(part))
 				if total_failure > 0:
 					self.oneshot_msg(num, "> succeeded: {0:>3},\x0304 failed: "
-								"{1:>3}\x03".format(success, total_failure))
+								"{1:>3}\x03".format(res["lines"], total_failure))
 				else:
 					self.oneshot_msg(num, ">\x0303 succeeded: {0:>3}\x03, failed: "
-								"{1:>3}".format(success, total_failure))
+								"{1:>3}".format(res["lines"], total_failure))
 				self.oneshot_msg(num, "> slot conflict: {0:>3}, blocker: "
 								 "{1:>3}".format(res["slot_conflict"],
 												 res["blocked"]))
