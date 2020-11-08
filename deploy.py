@@ -193,13 +193,18 @@ class BugHandler:
 						  " phase".format(num, part))
 
 			if res["lines"] > 0:
-				total_failure = (res["test_dep"] + res["slot_conflict"] +
-								 res["other"] + res["blocked"])
+				total_failure = (res["use_dep"] + res["test_dep"] +
+								 res["slot_conflict"] + res["use_comb"] +
+								 res["feat_test"] + res["blocked"] +
+								 res["other"])
 				# success = res["lines"] - total_failure
 
 				summary = ("[{0}] succeeded: {1}, test dep fail: {2}, "
-						   "slot conflict: {3}, blocked: {4}, other:"
-						   " {5}".format(part, res["lines"], res["test_dep"],
+						   "use dep fail: {3}, tests fail: {4}, "
+						   "slot conflict: {6}, blocked: {7}, use comb: "
+						   "{5}, other: {8}".format(part, res["lines"],
+										 res["test_dep"], res["use_dep"],
+										 res["feat_test"], res["use_comb"],
 										 res["slot_conflict"],
 										 res["blocked"], res["other"])
 				)
@@ -215,9 +220,14 @@ class BugHandler:
 				self.oneshot_msg(num, "> slot conflict: {0:>3}, blocker: "
 								 "{1:>3}".format(res["slot_conflict"],
 												 res["blocked"]))
+				self.oneshot_msg(num, "> test run fail: {0:>3}, usecomb: "
+								 "{1:>3}".format(res["feat_test"],
+												 res["use_comb"]))
 				self.oneshot_msg(num, "> test dep fail: {0:>3}, other:  "
 								 "{1:>3}".format(res["test_dep"],
 												 res["other"]))
+				self.oneshot_msg(num, "> USE deps fail: {0:>3}".format(
+										res["use_dep"]))
 
 		os.rename(report_path, report_path + "." + part)
 
