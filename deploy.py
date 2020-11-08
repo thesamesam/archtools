@@ -5,12 +5,14 @@ import os
 import signal
 from rq import get_current_job
 
+
 def kill():
 	print("Killing tatt (in third)")
 	process = get_current_job().meta['bug_handler'].process
 	if process and hasattr(process, 'terminate'):
 		process.terminate()
 		process.kill()
+
 
 # test_bug() is the entry point from rq
 def test_bug(bug, num, queue, atoms):
@@ -37,6 +39,7 @@ def test_bug(bug, num, queue, atoms):
 			process.terminate()
 			process.kill()
 		raise e
+
 
 class BugHandler:
 	def __init__(self, bug, num, queue, atoms):
@@ -89,8 +92,9 @@ class BugHandler:
 			# Let's kick off tatt
 			# First, tatt must generate the scripts
 			print("[bug #{0}] running tatt to generate scripts".format(num))
-			self.process = subprocess.run("/usr/bin/tatt -b {0} -j {1}".format(num, tatt_base).split(" "),
-										  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
+			self.process = subprocess.run(
+					"/usr/bin/tatt -b {0} -j {1}".format(num, tatt_base).split(" "),
+							  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
 
 			# Let's see if the scripts exist
 			if not os.path.isfile("{0}-useflags.sh".format(tatt_base)):
@@ -126,7 +130,6 @@ class BugHandler:
 			if self.process and hasattr(self.process, 'terminate'):
 				self.process.terminate()
 				raise
-
 
 	def parse_report(self, num, tatt_base):
 		report_path = tatt_base + ".report"
