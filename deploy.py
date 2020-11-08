@@ -165,7 +165,7 @@ class BugHandler:
 					res["lines"] += 1
 				elif "USE dependencies not satisfied" in line:
 					print("[bug #{0]}] USE deps not satisfied in {1}"
-						  " phase",format(num, part))
+						  " phase".format(num, part))
 					res["use_dep"] += 1
 				elif "merging test dependencies" in line:
 					print("[bug #{0}] failed to merge test dependencies"
