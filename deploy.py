@@ -105,36 +105,37 @@ class BugHandler:
 			print("[bug #{0}] running useflags.sh".format(num))
 			self.oneshot_msg(num, "\x0314running useflags.sh\x0F")
 			self.process = subprocess.run("./{0}-useflags.sh".format(tatt_base),
-										  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
+                                                      stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
 
-			fails_use = self.parse_report(num, tatt_base)
+			fails_use = self.parse_report(num, "use", tatt_base)
+			fails_rdep = 0
 
 			# Sometimes run rdeps (they don't always exist)
 			rdeps_path = "{0}-rdeps.sh".format(tatt_base)
 			if os.path.isfile(rdeps_path):
 				print("[bug #{0}] running rdeps.sh".format(num))
 				self.oneshot_msg(num, "\x0314running rdeps.sh\x0F")
-				self.process = subprocess.run("./{0}".format(rdeps_path),
-											  stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
-				fails_rdep = self.parse_report(num, tatt_base)
+				self.process = subprocess.run("./{0}".format(rdeps_path), stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
+				fails_rdep = self.parse_report(num, "revdep", tatt_base)
 			else:
 				print("[bug #{0}] no rdeps.sh:".format(num))
 				self.oneshot_msg(num, "\x0302no rdeps.sh\x0F")
 
 			if fails_use > 0 or (fails_rdep and fails_rdep > 0):
-				self.oneshot_msg(num, "\x0303\x16FINISHED - Good\x0F")
-			else:
 				self.oneshot_msg(num, "\x0304\x16FINISHED - Bad\x0F")
+			else:
+				self.oneshot_msg(num, "\x0303\x16FINISHED - Good\x0F")
 
 		except Exception as e:
+			raise e
 			if self.process and hasattr(self.process, 'terminate'):
 				self.process.terminate()
 				raise
 
-	def parse_report(self, num, tatt_base):
+	def parse_report(self, num, part, tatt_base):
 		report_path = tatt_base + ".report"
+		total_failure = 0
 
-		part = ""
 		res = {
 				"lines": 0,
 				"use_dep": 0,
@@ -147,24 +148,13 @@ class BugHandler:
 		}
 
 		with open(report_path, "r") as report:
-			for line in report:
-				line = lstrip(line)
-				if "USE tests started" in line:
-					part = "USE"
-					continue
-
-				if "revdep tests started" in line:
-					part = "revdep"
-					continue
-
-				if part not in ["USE", "revdep"]:
-					print("[bug #{0}] report file parsing failed".format(num))
-					break
+			for line in report.readlines():
+				line = line.lstrip()
 
 				if "succeeded" in line:
 					res["lines"] += 1
 				elif "USE dependencies not satisfied" in line:
-					print("[bug #{0]}] USE deps not satisfied in {1}"
+					print("[bug #{0}] USE deps not satisfied in {1}"
 						  " phase".format(num, part))
 					res["use_dep"] += 1
 				elif "merging test dependencies" in line:
@@ -190,9 +180,9 @@ class BugHandler:
 						reason = "other reasons"
 						res["other"] += 1
 					print("[bug #{0}] failed for {2} in {1}"
-						  " phase".format(num, part))
+						  " phase".format(num, part, reason))
 
-			if res["lines"] > 0:
+			if res["lines"] >= 0:
 				total_failure = (res["use_dep"] + res["test_dep"] +
 								 res["slot_conflict"] + res["use_comb"] +
 								 res["feat_test"] + res["blocked"] +
@@ -223,12 +213,11 @@ class BugHandler:
 				self.oneshot_msg(num, "> test run fail: {0:>3}, usecomb: "
 								 "{1:>3}".format(res["feat_test"],
 												 res["use_comb"]))
-				self.oneshot_msg(num, "> test dep fail: {0:>3}, other:  "
+				self.oneshot_msg(num, "> test dep fail: {0:>3}, other:	"
 								 "{1:>3}".format(res["test_dep"],
 												 res["other"]))
 				self.oneshot_msg(num, "> USE deps fail: {0:>3}".format(
 										res["use_dep"]))
 
 		os.rename(report_path, report_path + "." + part)
-
 		return total_failure
