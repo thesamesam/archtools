@@ -101,6 +101,18 @@ class BugHandler:
 				print("[bug #{0}] useflags.sh not found; skipping".format(num))
 				return
 
+			# Clean up old report(s)
+			reports = [
+				tatt_base + ".report",
+				tatt_base + ".report" + ".USE",
+				tatt_base + ".report" + ".REVDEP"
+			]
+
+			for report in reports:
+				if os.path.isfile(report):
+					print("[bug #{0}] removing stale report file {1}".format(num, report))
+					os.remove(report)
+
 			# Run useflags.sh
 			print("[bug #{0}] running useflags.sh".format(num))
 			self.oneshot_msg(num, "\x0314running useflags.sh\x0F")
