@@ -138,11 +138,11 @@ class BugHandler:
 				self.oneshot_msg(num, "\x0304\x16FINISHED - Bad\x0F")
 			else:
 				self.oneshot_msg(num, "\x0303\x16FINISHED - Good\x0F")
-                                
-                                # We're in the success case
-                                with open("good-bugs-" + date.today().strftime('%Y-%m-%d'), 'a+') as good_bugs:
-                                        good_bugs.write(num + "\r\n")
-                                
+
+				# We're in the success case
+				with open("good-bugs-" + date.today().strftime('%Y-%m-%d'), 'a+') as good_bugs:
+					good_bugs.write(str(num) + "\r\n")
+
 		except Exception as e:
 			raise e
 			if self.process and hasattr(self.process, 'terminate'):
