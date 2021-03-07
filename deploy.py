@@ -3,6 +3,8 @@ import json
 import subprocess
 import os
 import signal
+import re
+
 from datetime import date
 from rq import get_current_job
 
@@ -47,6 +49,7 @@ class BugHandler:
 		self.bug = bug
 		self.num = num
 		self.queue = queue
+		self.arch = re.sub('-(stable|keywording)', '', self.queue)
 		self.atoms = atoms
 		self.process = None
 
@@ -86,7 +89,6 @@ class BugHandler:
 				self.oneshot_msg(num, "atom <\x02{0}\x02>".format(name))
 				count += 1
 
-			# Useful
 			tatt_base = "{0}-{1}".format(num, self.queue)
 
 		try:
@@ -141,7 +143,7 @@ class BugHandler:
 
 				# We're in the success case
 				with open("good-bugs-" + date.today().strftime('%Y-%m-%d'), 'a+') as good_bugs:
-					good_bugs.write(str(num) + "\r\n")
+					good_bugs.write("{0},{1}\r\n".format(str(num), self.arch))
 
 		except Exception as e:
 			raise e
