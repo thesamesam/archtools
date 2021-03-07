@@ -199,7 +199,7 @@ class BugHandler:
 					print("[bug #{0}] failed for {2} in {1}"
 						  " phase".format(num, part, reason))
 
-			if res["lines"] >= 0:
+			if res["lines"] > 0:
 				total_failure = (res["use_dep"] + res["test_dep"] +
 								 res["slot_conflict"] + res["use_comb"] +
 								 res["feat_test"] + res["blocked"] +
@@ -215,11 +215,6 @@ class BugHandler:
 										 res["slot_conflict"],
 										 res["blocked"], res["other"])
 				)
-
-				if res["lines"] == 0 and total_failure == 0:
-					# 0 successes but no explicit failures
-					# This is still a failure
-					total_failure += 1
 
 				print("[bug #{0}] {1}".format(num, summary))
 				self.oneshot_msg(num, "{0} test complete:".format(part))
@@ -240,6 +235,10 @@ class BugHandler:
 												 res["other"]))
 				self.oneshot_msg(num, "> USE deps fail: {0:>3}".format(
 										res["use_dep"]))
+			else:
+				# Not reading any (success) lines means a failure occurred
+				total_failure += 1
+
 
 		os.rename(report_path, report_path + "." + part)
 		return total_failure
