@@ -6,6 +6,7 @@ import socket
 import subprocess
 
 from datetime import date
+from itertools import islice
 from rq import get_current_job
 
 def kill():
@@ -203,7 +204,7 @@ class BugHandler:
 
 			if res["lines"] > 0:
 				# Count failures (all fields except for 'lines')
-				total_failure = sum(res.pop(0))
+				total_failure = sum(islice(res, 1, None))
 
 				summary = ("[{0}] succeeded: {1}, test dep fail: {2}, "
 						   "use dep fail: {3}, tests fail: {4}, "
