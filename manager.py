@@ -1,12 +1,12 @@
 #!/usr/bin/python3.7
+import itertools
+import time
+
 from rq import Queue
 from redis import Redis
 
 from simpleworker import *
 from deploy import *
-
-import itertools
-import time
 
 # List of arches we have workers for
 #arches = ["arm", "arm64", "amd64", "x86"]
