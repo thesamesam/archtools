@@ -203,6 +203,8 @@ class BugHandler:
 						  " phase".format(num, part, reason))
 
 			if res["lines"] > 0:
+				# Recast everything to an int
+				res = list(map(int, res))
 				# Count failures (all fields except for 'lines')
 				total_failure = sum(islice(res, 1, None))
 
