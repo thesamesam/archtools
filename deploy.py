@@ -203,7 +203,7 @@ class BugHandler:
 
 			if res["lines"] > 0:
 				# Count failures (all fields except for 'lines')
-				total_failure = sum(res[1:])
+				total_failure = sum(res.pop(0))
 
 				summary = ("[{0}] succeeded: {1}, test dep fail: {2}, "
 						   "use dep fail: {3}, tests fail: {4}, "
