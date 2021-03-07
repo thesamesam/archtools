@@ -1,0 +1,23 @@
+# If arch is given on the command line, don't try to read arch from the list
+arch=${1}
+# Comma-delimited list of bug IDs and arches, new lines for new tuples
+bugs="1234,arm64"
+
+git pull
+
+for bug in ${bugs} ; do
+	IFS="," bug_arch=( ${bug} )
+	bug_arch=${bug_arch[1]}
+
+	nattka apply -a ${bug_arch} ${bug}
+	nattka commit -a ${bug_arch} ${bug}
+done
+
+git push
+
+for bug in ${bugs} ; do
+        IFS="," bug_arch=( ${bug} )
+        bug_arch=${bug_arch[1]}
+
+	nattka resolve -a ${bug_arch} ${bug}
+done
