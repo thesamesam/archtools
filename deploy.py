@@ -240,6 +240,5 @@ class BugHandler:
 				# Not reading any (success) lines means a failure occurred
 				total_failure += 1
 
-
 		os.rename(report_path, report_path + "." + part)
 		return total_failure
