@@ -216,6 +216,11 @@ class BugHandler:
 										 res["blocked"], res["other"])
 				)
 
+				if res["lines"] == 0 and total_failure == 0:
+					# 0 successes but no explicit failures
+					# This is still a failure
+					total_failure += 1
+
 				print("[bug #{0}] {1}".format(num, summary))
 				self.oneshot_msg(num, "{0} test complete:".format(part))
 				if total_failure > 0:
