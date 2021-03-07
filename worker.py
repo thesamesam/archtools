@@ -1,4 +1,5 @@
 import sys
+
 from redis import Redis
 from rq import Connection, Queue, Worker
 from rq import get_current_job
