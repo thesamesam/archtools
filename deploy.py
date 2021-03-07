@@ -71,6 +71,7 @@ class BugHandler:
 
 	def start_working(self):
 		num = self.num
+
 		print("[bug #{0}] starting".format(num))
 		print("[bug #{0}] has atoms:".format(num))
 		print(self.atoms)
@@ -201,11 +202,8 @@ class BugHandler:
 						  " phase".format(num, part, reason))
 
 			if res["lines"] > 0:
-				total_failure = (res["use_dep"] + res["test_dep"] +
-								 res["slot_conflict"] + res["use_comb"] +
-								 res["feat_test"] + res["blocked"] +
-								 res["other"])
-				# success = res["lines"] - total_failure
+				# Count failures (all fields except for 'lines')
+				total_failure = sum(res[1:])
 
 				summary = ("[{0}] succeeded: {1}, test dep fail: {2}, "
 						   "use dep fail: {3}, tests fail: {4}, "
