@@ -15,6 +15,7 @@ done
 
 git push
 
+# TODO: Drop bugs from list if nattka apply/commit fails
 for bug in ${bugs} ; do
         IFS="," bug_arch=( ${bug} )
         bug_arch=${bug_arch[1]}
