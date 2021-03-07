@@ -63,7 +63,7 @@ while True:
 
 				for bad_package in bad_packages:
 					if bad_package in bug.atoms.split("\r\n"):
-						print("Skipping atom matching {0}.format(bad_package))
+						print("Skipping atom matching {0}".format(bad_package))
 						skip_job = True
 
 				if skip_job:
