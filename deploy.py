@@ -1,13 +1,12 @@
-import socket
 import json
-import subprocess
 import os
-import signal
 import re
+import signal
+import socket
+import subprocess
 
 from datetime import date
 from rq import get_current_job
-
 
 def kill():
 	print("Killing tatt (in third)")
