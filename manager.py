@@ -12,12 +12,18 @@ from deploy import *
 #arches = ["arm", "arm64", "amd64", "x86"]
 arches = ["amd64", "arm", "arm64"]
 
+# Skip bugs with these in there for now
+bad_packages = ["mysql", "mariadb", "gcc", "binutils", \
+		"firefox", "spidermonkey", "clang", "llvm", \
+		"kernel", "chromium", "qemu", "psutil", \
+		"sys-libs/db", "gevent", "glibc", "thunderbird"]
+
 # Create a queue for each type of job possible here
 # Combine arches with work type
 keys = itertools.product(arches, ['stable', 'keywording'])
 keys = ['-'.join(map(str, key)) for key in keys]
 
-redis_connection = Redis(host='', password='')
+redis_connection = Redis(host='127.0.0.1', password='')
 queues = dict.fromkeys(keys)
 for key in queues.keys():
 	print(key)
@@ -52,6 +58,16 @@ while True:
 					queue_name += "-keywording"
 
 				queue = queues[queue_name]
+
+				skip_job = False
+
+				for bad_package in bad_packages:
+					if bad_package in bug.atoms.split("\r\n"):
+						print("Skipping atom matching {0}.format(bad_package))
+						skip_job = True
+
+				if skip_job:
+					continue
 
 				# Avoid duplicates
 				if str(num) in queue.job_ids or num in queue.job_ids:
