@@ -202,7 +202,8 @@ class BugHandler:
 						  " phase".format(num, part, reason))
 
 			if res["lines"] > 0:
-				total_failure = sum(list(res.keys())[:1])
+				# Count failures (all fields except for 'lines')
+				total_failure = sum(list(res.values())[:1])
 
 				summary = ("[{0}] succeeded: {1}, test dep fail: {2}, "
 						   "use dep fail: {3}, tests fail: {4}, "
