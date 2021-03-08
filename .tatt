@@ -1,0 +1,7 @@
+arch=amd64
+ignoreprefix="elibc_","video_cards_","linguas_","python_targets_","python_single_target_","kdeenablefinal","test","debug","qemu_user_","qemu_softmmu_","libressl","systemd","sdjournal"
+buildlogdir=/root/logs
+emergeopts="--autounmask-keep-keywords=y --autounmask-use=y --autounmask-continue --autounmask-write"
+rdeps=0
+usecombis=1
+template-dir=/root/templates
