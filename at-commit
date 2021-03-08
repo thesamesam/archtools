@@ -1,3 +1,4 @@
+#!/bin/bash
 # If arch is given on the command line, don't try to read arch from the list
 arch=${1}
 # Comma-delimited list of bug IDs and arches, new lines for new tuples
