@@ -12,6 +12,7 @@ A tool to help automate the Gentoo arch testing process.
 
 You will need:
 
+- NATTkA
 - python-bugzilla
 - dev-python/rq
 - A Redis server running for the manager
