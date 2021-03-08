@@ -6,8 +6,12 @@ bugs="1234,arm64"
 git pull
 
 for bug in ${bugs} ; do
-	IFS="," bug_arch=( ${bug} )
-	bug_arch=${bug_arch[1]}
+	if ! [[ -z ${arch} ]] ; then
+		IFS="," bug_arch=( ${bug} )
+		bug_arch=${bug_arch[1]}
+	else
+		bug_arch=${arch}
+	fi
 
 	nattka apply -a ${bug_arch} ${bug}
 	nattka commit -a ${bug_arch} ${bug}
@@ -17,8 +21,12 @@ git push
 
 # TODO: Drop bugs from list if nattka apply/commit fails
 for bug in ${bugs} ; do
-        IFS="," bug_arch=( ${bug} )
-        bug_arch=${bug_arch[1]}
+	if ! [[ -z ${arch} ]] ; then
+		IFS="," bug_arch=( ${bug} )
+		bug_arch=${bug_arch[1]}
+	else
+		bug_arch=$(arch}
+	fi
 
 	nattka resolve -a ${bug_arch} ${bug}
 done
