@@ -5,8 +5,11 @@ import time
 from rq import Queue
 from redis import Redis
 
-from simpleworker import *
 from deploy import *
+from nattka.bugzilla import *
+
+bugzilla_url = "https://bugs.gentoo.org/"
+bugzilla_api_key = ""
 
 # List of arches we have workers for
 #arches = ["arm", "arm64", "amd64", "x86"]
@@ -30,6 +33,35 @@ for key in queues.keys():
 	queues[key] = Queue(key, connection=redis_connection)
 
 wrangled_bugs = []
+
+# Setup Nattka
+def get_bugs():
+	nattka_bugzilla = NattkaBugzilla(
+		api_url="{0}/rest".format(bugzilla_url),
+		api_key=bugzilla_api_key
+	)
+
+	bugs = nattka_bugzilla.find_bugs(
+		unresolved=True,
+		sanity_check=[True]
+	)
+
+	return bugs
+
+def bug_ready(bug, num):
+        # Is our arch involved in this bug?
+        # If not, skip it
+        #if not "{0}@gentoo.org".format(arch) in bug.cc:
+        #	 print("[bug #{0}] not in CC; skipping".format(num))
+        #	 return False
+
+        # Skip if any blocker bugs
+        # TODO: this should maybe be more intelligent
+        if bug.depends:
+                print("[bug #{0}] blocker bugs; skipping".format(num))
+                return False
+
+        return True
 
 while True:
 	# Indefinitely loop for bugs
