@@ -49,12 +49,6 @@ def get_bugs():
 	return bugs
 
 def bug_ready(bug, num):
-        # Is our arch involved in this bug?
-        # If not, skip it
-        #if not "{0}@gentoo.org".format(arch) in bug.cc:
-        #	 print("[bug #{0}] not in CC; skipping".format(num))
-        #	 return False
-
         # Skip if any blocker bugs
         # TODO: this should maybe be more intelligent
         if bug.depends:
