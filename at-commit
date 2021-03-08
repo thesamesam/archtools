@@ -14,6 +14,14 @@ for bug in ${bugs} ; do
 	fi
 
 	nattka apply -a ${bug_arch} ${bug}
+
+	if ! [[ $? -eq 0 ]] ; then
+		# We can't include this bug
+		echo "Bug ${bug} failed in nattka apply"
+		# Delete from the list so we don't 'nattka resolve' it
+		bugs=${bugs[@]/${bug}
+	fi
+
 	nattka commit -a ${bug_arch} ${bug}
 done
 
