@@ -47,7 +47,6 @@ The `rq` system has two parts:
 3. Run `python manager.py`! The manager side needs the following
    files available:
    * `manager.py`
-   * `simpleworker.py` (for now, this is temporary)
    * `deploy.py` (for serialisation)
 
 4. On the client(s) side, make sure the following are available:
