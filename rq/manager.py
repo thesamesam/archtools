@@ -12,7 +12,6 @@ bugzilla_url = "https://bugs.gentoo.org/"
 bugzilla_api_key = ""
 
 # List of arches we have workers for
-#arches = ["arm", "arm64", "amd64", "x86"]
 arches = ["amd64", "arm", "arm64"]
 
 # Skip bugs with these in there for now
