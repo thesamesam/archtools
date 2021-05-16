@@ -54,8 +54,7 @@ def bug_ready(bug, num):
 		# Figure out if the bug is actually open
 		results = nattka_bugzilla.find_bugs(
 			bugs=bug.depends,
-			unresolved=True,
-			sanity_check=[True]
+			unresolved=True
         )
 
         if results.items():
