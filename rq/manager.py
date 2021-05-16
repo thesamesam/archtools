@@ -34,12 +34,12 @@ for key in queues.keys():
 wrangled_bugs = []
 
 # Setup Nattka
-def get_bugs():
-	nattka_bugzilla = NattkaBugzilla(
-		api_url="{0}/rest".format(bugzilla_url),
-		api_key=bugzilla_api_key
-	)
+nattka_bugzilla = NattkaBugzilla(
+	api_url="{0}/rest".format(bugzilla_url),
+	api_key=bugzilla_api_key
+)
 
+def get_bugs():
 	bugs = nattka_bugzilla.find_bugs(
 		unresolved=True,
 		sanity_check=[True]
@@ -48,13 +48,21 @@ def get_bugs():
 	return bugs
 
 def bug_ready(bug, num):
-        # Skip if any blocker bugs
-        # TODO: this should maybe be more intelligent
-        if bug.depends:
-                print("[bug #{0}] blocker bugs; skipping".format(num))
-                return False
+	# Skip if any blocker bugs
+	# TODO: this should maybe be more intelligent
+	if len(bug.depends) > 0:
+		# Figure out if the bug is actually open
+		results = nattka_bugzilla.find_bugs(
+			bugs=bug.depends,
+			unresolved=True,
+			sanity_check=[True]
+        )
 
-        return True
+        if results.items():
+			print("[bug #{0}] blocker bugs; skipping".format(num))
+			return False
+
+	return True
 
 while True:
 	# Indefinitely loop for bugs
