@@ -52,6 +52,8 @@ def bug_ready(bug, num):
 	# TODO: this should maybe be more intelligent
 	if len(bug.depends) > 0:
 		# Figure out if the bug is actually open
+		# TODO: Check here whether the bugs are keywording/stabilisation and
+		# if this particular arch is in CC or not. If it's not, we could include it.
 		results = nattka_bugzilla.find_bugs(
 			bugs=bug.depends,
 			unresolved=True
