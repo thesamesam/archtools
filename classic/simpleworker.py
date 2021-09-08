@@ -24,20 +24,23 @@ skip_tag_prefix = "sam"
 
 # Irker configuration
 irker_listener = ("127.0.0.1", 6659)
-irker_spigot   = "irc://irc.freenode.net:6667/##test-arch-simpleworker"
+irker_spigot = "irc://irc.freenode.net:6667/##test-arch-simpleworker"
 
 # Setup Nattka
+
+
 def get_bugs():
-	nattka_bugzilla = NattkaBugzilla(
-        	                api_url="{0}/rest".format(bugzilla_url),
-                	        api_key=bugzilla_api_key
-	)
+    nattka_bugzilla = NattkaBugzilla(
+        api_url="{0}/rest".format(bugzilla_url),
+        api_key=bugzilla_api_key
+    )
 
-	bugs = nattka_bugzilla.find_bugs(
-        	                unresolved=True, sanity_check=[True]
-	)
+    bugs = nattka_bugzilla.find_bugs(
+        unresolved=True, sanity_check=[True]
+    )
 
-	return bugs
+    return bugs
+
 
 def oneshot_msg(num, message):
     # Send a one-off message to IRC via Irker
@@ -45,18 +48,19 @@ def oneshot_msg(num, message):
 
     # See https://manpages.debian.org/testing/irker/irkerd.8.en.html
     json_msg = json.JSONEncoder().encode(
-                                    {"to": irker_spigot,
-                                     "privmsg": message}
+        {"to": irker_spigot,
+         "privmsg": message}
     )
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.sendto(json_msg.encode("utf8"), irker_listener)
     sock.close()
 
+
 def bug_ready(bug, num):
     # Is our arch involved in this bug?
     # If not, skip it
-    #if not "{0}@gentoo.org".format(arch) in bug.cc:
+    # if not "{0}@gentoo.org".format(arch) in bug.cc:
     #    print("[bug #{0}] not in CC; skipping".format(num))
     #    return False
 
@@ -79,8 +83,8 @@ def reserve_bug(num):
     # Set a personal tag on the bug to indicate to other instances
     # that we're working on this bug.
     bzapi = bugzilla.Bugzilla(
-                        "{0}/xmlrpc.cgi".format(bugzilla_url),
-                        api_key=bugzilla_api_key
+        "{0}/xmlrpc.cgi".format(bugzilla_url),
+        api_key=bugzilla_api_key
     )
     # bzbug = bzapi.getbug(num)
     bzapi.update_tags([num], "{0}: {1}".format(skip_tag_prefix, arch))
@@ -97,8 +101,8 @@ def start_working(bug, num):
     count = 0
     for atom in bug.atoms.split("\r\n"):
         if count > 4:
-           oneshot_msg(num, "... truncated list")
-           break
+            oneshot_msg(num, "... truncated list")
+            break
 
         name = atom.split(" ")[0]
         if name:
@@ -134,20 +138,20 @@ def parse_report(bug, num, tatt_base):
 
     part = ""
     results = {
-                "USE": {
-                        "test_dep_failure": 0,
-                        "slot_conflict": 0,
-                        "blocked": 0,
-                        "failure": 0,
-                        "lines": 0
-                },
-                "revdep": {
-                        "test_dep_failure": 0,
-                        "slot_conflict": 0,
-                        "blocked": 0,
-                        "failure": 0,
-                        "lines": 0
-                },
+        "USE": {
+            "test_dep_failure": 0,
+            "slot_conflict": 0,
+            "blocked": 0,
+            "failure": 0,
+            "lines": 0
+        },
+        "revdep": {
+            "test_dep_failure": 0,
+            "slot_conflict": 0,
+            "blocked": 0,
+            "failure": 0,
+            "lines": 0
+        },
     }
 
     with open(report_path, "r") as report:
@@ -242,9 +246,10 @@ def worker_loop():
         # By this point, we should be good to proceed
         start_working(bug, num)
 
+
 if __name__ == "__main__":
-	try:
-	    worker_loop()
-	except Exception as e:
-	    oneshot_msg("0", "croaking due to exception '{0}'".format(e))
-	    raise e
+    try:
+        worker_loop()
+    except Exception as e:
+        oneshot_msg("0", "croaking due to exception '{0}'".format(e))
+        raise e
