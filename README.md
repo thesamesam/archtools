@@ -1,14 +1,14 @@
 ## archtools
 
-A tool to help automate the Gentoo arch testing process.
+Tools to help automate the Gentoo arch testing process.
 
 ### Tools
 
-1. The `rq`-based queue system (the rq directory);
+1. `rq`-based queue system (the rq directory);
 
-2. The 'classic' simpleworker script
+2. 'classic' simpleworker script (read more [here](classic/README.md)).
 
-### `rq` description
+### `rq`
 
 You will need:
 
@@ -69,6 +69,3 @@ The `rq` system has two parts:
    
    You can commit these using the `at-commit` script.
    
-### simpleworker description
-
-You can read more [here](classic/README.md).
