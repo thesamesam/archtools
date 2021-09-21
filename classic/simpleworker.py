@@ -31,13 +31,10 @@ irker_spigot = "irc://irc.freenode.net:6667/##test-arch-simpleworker"
 
 def get_bugs():
     nattka_bugzilla = NattkaBugzilla(
-        api_url="{0}/rest".format(bugzilla_url),
-        api_key=bugzilla_api_key
+        api_url="{0}/rest".format(bugzilla_url), api_key=bugzilla_api_key
     )
 
-    bugs = nattka_bugzilla.find_bugs(
-        unresolved=True, sanity_check=[True]
-    )
+    bugs = nattka_bugzilla.find_bugs(unresolved=True, sanity_check=[True])
 
     return bugs
 
@@ -47,10 +44,7 @@ def oneshot_msg(num, message):
     message = "[{0}]: bug #{1} - {2}".format(machine, num, message)
 
     # See https://manpages.debian.org/testing/irker/irkerd.8.en.html
-    json_msg = json.JSONEncoder().encode(
-        {"to": irker_spigot,
-         "privmsg": message}
-    )
+    json_msg = json.JSONEncoder().encode({"to": irker_spigot, "privmsg": message})
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.sendto(json_msg.encode("utf8"), irker_listener)
@@ -83,8 +77,7 @@ def reserve_bug(num):
     # Set a personal tag on the bug to indicate to other instances
     # that we're working on this bug.
     bzapi = bugzilla.Bugzilla(
-        "{0}/xmlrpc.cgi".format(bugzilla_url),
-        api_key=bugzilla_api_key
+        "{0}/xmlrpc.cgi".format(bugzilla_url), api_key=bugzilla_api_key
     )
     # bzbug = bzapi.getbug(num)
     bzapi.update_tags([num], "{0}: {1}".format(skip_tag_prefix, arch))
@@ -118,15 +111,13 @@ def start_working(bug, num):
 
     # Run useflags.sh
     oneshot_msg(num, "running useflags.sh")
-    subprocess.run("./{0}-useflags.sh".format(tatt_base),
-                   stdout=subprocess.DEVNULL)
+    subprocess.run("./{0}-useflags.sh".format(tatt_base), stdout=subprocess.DEVNULL)
 
     # Sometimes run rdeps (they don't always exist)
     rdeps_path = "{0}-rdeps.sh".format(tatt_base)
     if os.path.isfile(rdeps_path):
         oneshot_msg(num, "running rdeps.sh")
-        subprocess.run("./{0}".format(rdeps_path),
-                       stdout=subprocess.DEVNULL)
+        subprocess.run("./{0}".format(rdeps_path), stdout=subprocess.DEVNULL)
     else:
         oneshot_msg(num, "no rdeps.sh")
 
@@ -143,14 +134,14 @@ def parse_report(bug, num, tatt_base):
             "slot_conflict": 0,
             "blocked": 0,
             "failure": 0,
-            "lines": 0
+            "lines": 0,
         },
         "revdep": {
             "test_dep_failure": 0,
             "slot_conflict": 0,
             "blocked": 0,
             "failure": 0,
-            "lines": 0
+            "lines": 0,
         },
     }
 
@@ -173,20 +164,24 @@ def parse_report(bug, num, tatt_base):
             # Assume we're in the "USE tests" part until we get
             # a line telling us we're not.
             if "merging test dependencies" in line:
-                print("[bug #{0}] failed to merge test dependencies"
-                      " in {1} phase".format(num, part))
+                print(
+                    "[bug #{0}] failed to merge test dependencies"
+                    " in {1} phase".format(num, part)
+                )
                 results[part]["test_dep_failure"] += 1
             elif "slot conflict" in line:
-                print("[bug #{0}] hit a slot conflict in {1}"
-                      " phase".format(num, part))
+                print(
+                    "[bug #{0}] hit a slot conflict in {1}" " phase".format(num, part)
+                )
                 results[part]["slot_conflict"] += 1
             elif "blocked" in line:
-                print("[bug #{0}] hit a blocker in {1}"
-                      " phase".format(num, part))
+                print("[bug #{0}] hit a blocker in {1}" " phase".format(num, part))
                 results[part]["blocked"] += 1
             elif "failed" in line:
-                print("[bug #{0}] failed for unknown reasons in {1}"
-                      " phase".format(num, part))
+                print(
+                    "[bug #{0}] failed for unknown reasons in {1}"
+                    " phase".format(num, part)
+                )
                 results[part]["failure"] += 1
 
     for part in ["USE", "revdep"]:
@@ -194,27 +189,34 @@ def parse_report(bug, num, tatt_base):
         slot_conflict = results[part]["slot_conflict"]
         unknown_failure = results[part]["failure"]
         blocked = results[part]["blocked"]
-        total_failure = (test_dep_failure + slot_conflict +
-                         unknown_failure + blocked)
+        total_failure = test_dep_failure + slot_conflict + unknown_failure + blocked
         success = results[part]["lines"] - total_failure
 
-        summary = ("[{0}] succeeded: {1}, test dep fail: {2},"
-                   "slot conflict: {3}, blocked: {4}, unknown:"
-                   " {5}".format(part, success, test_dep_failure,
-                                 slot_conflict, blocked, unknown_failure
-                                 )
-                   )
+        summary = (
+            "[{0}] succeeded: {1}, test dep fail: {2},"
+            "slot conflict: {3}, blocked: {4}, unknown:"
+            " {5}".format(
+                part, success, test_dep_failure, slot_conflict, blocked, unknown_failure
+            )
+        )
 
         if results[part]["lines"] > 0:
             print("[bug #{0}] {1}".format(num, summary))
             oneshot_msg(num, "{0} test complete:".format(part))
-            oneshot_msg(num, "> succeeded: {0:>3}, failed: "
-                             "{1:>3}".format(success, total_failure))
-            oneshot_msg(num, "> slot conflict: {0:>3}, blocker: "
-                             "{1:>3}".format(slot_conflict, blocked))
-            oneshot_msg(num, "> test dep fail: {0:>3}, unknown: "
-                             "{1:>3}".format(test_dep_failure,
-                                             unknown_failure))
+            oneshot_msg(
+                num,
+                "> succeeded: {0:>3}, failed: " "{1:>3}".format(success, total_failure),
+            )
+            oneshot_msg(
+                num,
+                "> slot conflict: {0:>3}, blocker: "
+                "{1:>3}".format(slot_conflict, blocked),
+            )
+            oneshot_msg(
+                num,
+                "> test dep fail: {0:>3}, unknown: "
+                "{1:>3}".format(test_dep_failure, unknown_failure),
+            )
 
 
 def worker_loop():
@@ -233,9 +235,10 @@ def worker_loop():
 
         # Let's kick off tatt
         # First, tatt must generate the scripts
-        subprocess.run("tatt -b {0} -j {0}-{1}"
-                       "-{2}".format(num, arch, machine).split(),
-                       stdout=subprocess.DEVNULL)
+        subprocess.run(
+            "tatt -b {0} -j {0}-{1}" "-{2}".format(num, arch, machine).split(),
+            stdout=subprocess.DEVNULL,
+        )
 
         # Let's see if the scripts exist
         tatt_base = "{0}-{1}-{2}".format(num, arch, machine)

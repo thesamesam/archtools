@@ -11,8 +11,8 @@ from rq import get_current_job
 
 def kill():
     print("Killing tatt (in third)")
-    process = get_current_job().meta['bug_handler'].process
-    if process and hasattr(process, 'terminate'):
+    process = get_current_job().meta["bug_handler"].process
+    if process and hasattr(process, "terminate"):
         process.terminate()
         process.kill()
 
@@ -26,8 +26,8 @@ def test_bug(bug, num, queue, atoms):
     # Tag this job with our IP
     # TODO: Include hostname?
     job = get_current_job()
-    job.meta['handled_by'] = socket.gethostname()
-    job.meta['bug_handler'] = BugHandler(bug, num, queue, atoms)
+    job.meta["handled_by"] = socket.gethostname()
+    job.meta["bug_handler"] = BugHandler(bug, num, queue, atoms)
     job.save_meta()
 
     # Just some tiny debugging output
@@ -35,10 +35,10 @@ def test_bug(bug, num, queue, atoms):
 
     # Actually do some work now
     try:
-        job.meta['bug_handler'].start_working()
+        job.meta["bug_handler"].start_working()
     except Exception as e:
-        process = job.meta['bug_handler'].process
-        if process and hasattr(process, 'terminate'):
+        process = job.meta["bug_handler"].process
+        if process and hasattr(process, "terminate"):
             process.terminate()
             process.kill()
         raise e
@@ -49,7 +49,7 @@ class BugHandler:
         self.bug = bug
         self.num = num
         self.queue = queue
-        self.arch = re.sub('-(stable|keywording)', '', self.queue)
+        self.arch = re.sub("-(stable|keywording)", "", self.queue)
         self.atoms = atoms
         self.process = None
 
@@ -59,13 +59,11 @@ class BugHandler:
         irker_listener = ("127.0.0.1", 6659)
         irker_spigot = "irc://irc.freenode.net:6667/##test-arch-simpleworker"
         message = "\x0314[{0}]: \x0305bug #{1}\x0F - {2}".format(
-            self.queue, num, message)
+            self.queue, num, message
+        )
 
         # See https://manpages.debian.org/testing/irker/irkerd.8.en.html
-        json_msg = json.JSONEncoder().encode(
-            {"to": irker_spigot,
-             "privmsg": message}
-        )
+        json_msg = json.JSONEncoder().encode({"to": irker_spigot, "privmsg": message})
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.sendto(json_msg.encode("utf8"), irker_listener)
@@ -78,8 +76,7 @@ class BugHandler:
         print("[bug #{0}] has atoms:".format(num))
         print(self.atoms)
 
-        self.oneshot_msg(
-            num, "\x16arch '{0}' starting work\x0F".format(self.queue))
+        self.oneshot_msg(num, "\x16arch '{0}' starting work\x0F".format(self.queue))
 
         count = 0
         for atom in self.atoms.split("\r\n"):
@@ -87,7 +84,7 @@ class BugHandler:
                 self.oneshot_msg(num, "... truncated list")
                 break
 
-            name = atom.split(" ")[0].lstrip('=~<>')
+            name = atom.split(" ")[0].lstrip("=~<>")
             if name:
                 self.oneshot_msg(num, "atom <\x02{0}\x02>".format(name))
                 count += 1
@@ -99,9 +96,10 @@ class BugHandler:
             # First, tatt must generate the scripts
             print("[bug #{0}] running tatt to generate scripts".format(num))
             self.process = subprocess.run(
-                "/usr/bin/tatt -b {0} -j {1}".format(num,
-                                                     tatt_base).split(" "),
-                stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
+                "/usr/bin/tatt -b {0} -j {1}".format(num, tatt_base).split(" "),
+                stdout=subprocess.DEVNULL,
+                preexec_fn=os.setpgrp,
+            )
 
             # Let's see if the scripts exist
             if not os.path.isfile("{0}-useflags.sh".format(tatt_base)):
@@ -112,20 +110,24 @@ class BugHandler:
             reports = [
                 tatt_base + ".report",
                 tatt_base + ".report" + ".USE",
-                tatt_base + ".report" + ".REVDEP"
+                tatt_base + ".report" + ".REVDEP",
             ]
 
             for report in reports:
                 if os.path.isfile(report):
-                    print("[bug #{0}] removing stale report file {1}".format(
-                        num, report))
+                    print(
+                        "[bug #{0}] removing stale report file {1}".format(num, report)
+                    )
                     os.remove(report)
 
             # Run useflags.sh
             print("[bug #{0}] running useflags.sh".format(num))
             self.oneshot_msg(num, "\x0314running useflags.sh\x0F")
-            self.process = subprocess.run("./{0}-useflags.sh".format(tatt_base),
-                                          stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
+            self.process = subprocess.run(
+                "./{0}-useflags.sh".format(tatt_base),
+                stdout=subprocess.DEVNULL,
+                preexec_fn=os.setpgrp,
+            )
 
             fails_use = self.parse_report(num, "USE", tatt_base)
             fails_rdep = 0
@@ -136,7 +138,10 @@ class BugHandler:
                 print("[bug #{0}] running rdeps.sh".format(num))
                 self.oneshot_msg(num, "\x0314running rdeps.sh\x0F")
                 self.process = subprocess.run(
-                    "./{0}".format(rdeps_path), stdout=subprocess.DEVNULL, preexec_fn=os.setpgrp)
+                    "./{0}".format(rdeps_path),
+                    stdout=subprocess.DEVNULL,
+                    preexec_fn=os.setpgrp,
+                )
                 fails_rdep = self.parse_report(num, "REVDEP", tatt_base)
             else:
                 print("[bug #{0}] no rdeps.sh:".format(num))
@@ -148,12 +153,14 @@ class BugHandler:
                 self.oneshot_msg(num, "\x0303\x16FINISHED - Good\x0F")
 
                 # We're in the success case
-                with open("good-bugs-" + date.today().strftime('%Y-%m-%d'), 'a+') as good_bugs:
+                with open(
+                    "good-bugs-" + date.today().strftime("%Y-%m-%d"), "a+"
+                ) as good_bugs:
                     good_bugs.write("{0},{1}\r\n".format(str(num), self.arch))
 
         except Exception as e:
             raise e
-            if self.process and hasattr(self.process, 'terminate'):
+            if self.process and hasattr(self.process, "terminate"):
                 self.process.terminate()
                 raise
 
@@ -179,20 +186,25 @@ class BugHandler:
                 if "succeeded" in line:
                     res["lines"] += 1
                 elif "USE dependencies not satisfied" in line:
-                    print("[bug #{0}] USE deps not satisfied in {1}"
-                          " phase".format(num, part))
+                    print(
+                        "[bug #{0}] USE deps not satisfied in {1}"
+                        " phase".format(num, part)
+                    )
                     res["use_dep"] += 1
                 elif "merging test dependencies" in line:
-                    print("[bug #{0}] failed to merge test dependencies"
-                          " in {1} phase".format(num, part))
+                    print(
+                        "[bug #{0}] failed to merge test dependencies"
+                        " in {1} phase".format(num, part)
+                    )
                     res["test_dep"] += 1
                 elif "slot conflict" in line:
-                    print("[bug #{0}] hit a slot conflict in {1}"
-                          " phase".format(num, part))
+                    print(
+                        "[bug #{0}] hit a slot conflict in {1}"
+                        " phase".format(num, part)
+                    )
                     res["slot_conflict"] += 1
                 elif "blocked" in line:
-                    print("[bug #{0}] hit a blocker in {1}"
-                          " phase".format(num, part))
+                    print("[bug #{0}] hit a blocker in {1}" " phase".format(num, part))
                     res["blocked"] += 1
                 elif "failed" in line:
                     if line.startswith("USE"):
@@ -204,42 +216,62 @@ class BugHandler:
                     else:
                         reason = "other reasons"
                         res["other"] += 1
-                    print("[bug #{0}] failed for {2} in {1}"
-                          " phase".format(num, part, reason))
+                    print(
+                        "[bug #{0}] failed for {2} in {1}"
+                        " phase".format(num, part, reason)
+                    )
 
             if res["lines"] > 0:
                 # Count failures (all fields except for 'lines')
                 total_failure = sum(list(res.values())[1:])
 
-                summary = ("[{0}] succeeded: {1}, test dep fail: {2}, "
-                           "use dep fail: {3}, tests fail: {4}, "
-                           "slot conflict: {6}, blocked: {7}, use comb: "
-                           "{5}, other: {8}".format(part, res["lines"],
-                                                    res["test_dep"], res["use_dep"],
-                                                    res["feat_test"], res["use_comb"],
-                                                    res["slot_conflict"],
-                                                    res["blocked"], res["other"])
-                           )
+                summary = (
+                    "[{0}] succeeded: {1}, test dep fail: {2}, "
+                    "use dep fail: {3}, tests fail: {4}, "
+                    "slot conflict: {6}, blocked: {7}, use comb: "
+                    "{5}, other: {8}".format(
+                        part,
+                        res["lines"],
+                        res["test_dep"],
+                        res["use_dep"],
+                        res["feat_test"],
+                        res["use_comb"],
+                        res["slot_conflict"],
+                        res["blocked"],
+                        res["other"],
+                    )
+                )
 
                 print("[bug #{0}] {1}".format(num, summary))
                 self.oneshot_msg(num, "{0} test complete:".format(part))
                 if total_failure > 0:
-                    self.oneshot_msg(num, "> succeeded: {0:>3},\x0304 failed: "
-                                     "{1:>3}\x03".format(res["lines"], total_failure))
+                    self.oneshot_msg(
+                        num,
+                        "> succeeded: {0:>3},\x0304 failed: "
+                        "{1:>3}\x03".format(res["lines"], total_failure),
+                    )
                 else:
-                    self.oneshot_msg(num, ">\x0303 succeeded: {0:>3}\x03, failed: "
-                                     "{1:>3}".format(res["lines"], total_failure))
-                self.oneshot_msg(num, "> slot conflict: {0:>3}, blocker: "
-                                 "{1:>3}".format(res["slot_conflict"],
-                                                 res["blocked"]))
-                self.oneshot_msg(num, "> test run fail: {0:>3}, usecomb: "
-                                 "{1:>3}".format(res["feat_test"],
-                                                 res["use_comb"]))
-                self.oneshot_msg(num, "> test dep fail: {0:>3}, other:	"
-                                 "{1:>3}".format(res["test_dep"],
-                                                 res["other"]))
-                self.oneshot_msg(num, "> USE deps fail: {0:>3}".format(
-                    res["use_dep"]))
+                    self.oneshot_msg(
+                        num,
+                        ">\x0303 succeeded: {0:>3}\x03, failed: "
+                        "{1:>3}".format(res["lines"], total_failure),
+                    )
+                self.oneshot_msg(
+                    num,
+                    "> slot conflict: {0:>3}, blocker: "
+                    "{1:>3}".format(res["slot_conflict"], res["blocked"]),
+                )
+                self.oneshot_msg(
+                    num,
+                    "> test run fail: {0:>3}, usecomb: "
+                    "{1:>3}".format(res["feat_test"], res["use_comb"]),
+                )
+                self.oneshot_msg(
+                    num,
+                    "> test dep fail: {0:>3}, other:	"
+                    "{1:>3}".format(res["test_dep"], res["other"]),
+                )
+                self.oneshot_msg(num, "> USE deps fail: {0:>3}".format(res["use_dep"]))
             else:
                 # Not reading any (success) lines means a failure occurred
                 total_failure += 1

@@ -15,17 +15,31 @@ bugzilla_api_key = ""
 arches = ["amd64", "arm", "arm64"]
 
 # Skip bugs with these in there for now
-bad_packages = ["mysql", "mariadb", "gcc", "binutils",
-                "firefox", "spidermonkey", "clang", "llvm",
-                "kernel", "chromium", "qemu", "psutil",
-                "sys-libs/db", "gevent", "glibc", "thunderbird"]
+bad_packages = [
+    "mysql",
+    "mariadb",
+    "gcc",
+    "binutils",
+    "firefox",
+    "spidermonkey",
+    "clang",
+    "llvm",
+    "kernel",
+    "chromium",
+    "qemu",
+    "psutil",
+    "sys-libs/db",
+    "gevent",
+    "glibc",
+    "thunderbird",
+]
 
 # Create a queue for each type of job possible here
 # Combine arches with work type
-keys = itertools.product(arches, ['stable', 'keywording'])
-keys = ['-'.join(map(str, key)) for key in keys]
+keys = itertools.product(arches, ["stable", "keywording"])
+keys = ["-".join(map(str, key)) for key in keys]
 
-redis_connection = Redis(host='127.0.0.1', password='')
+redis_connection = Redis(host="127.0.0.1", password="")
 queues = dict.fromkeys(keys)
 for key in queues.keys():
     print(key)
@@ -35,16 +49,12 @@ wrangled_bugs = []
 
 # Setup Nattka
 nattka_bugzilla = NattkaBugzilla(
-    api_url="{0}/rest".format(bugzilla_url),
-    api_key=bugzilla_api_key
+    api_url="{0}/rest".format(bugzilla_url), api_key=bugzilla_api_key
 )
 
 
 def get_bugs():
-    bugs = nattka_bugzilla.find_bugs(
-        unresolved=True,
-        sanity_check=[True]
-    )
+    bugs = nattka_bugzilla.find_bugs(unresolved=True, sanity_check=[True])
 
     return bugs
 
@@ -56,10 +66,7 @@ def bug_ready(bug, num):
         # Figure out if the bug is actually open
         # TODO: Check here whether the bugs are keywording/stabilisation and
         # if this particular arch is in CC or not. If it's not, we could include it.
-        results = nattka_bugzilla.find_bugs(
-            bugs=bug.depends,
-            unresolved=True
-        )
+        results = nattka_bugzilla.find_bugs(bugs=bug.depends, unresolved=True)
 
     if results.items():
         print("[bug #{0}] blocker bugs; skipping".format(num))
@@ -108,16 +115,23 @@ while True:
 
                 # Avoid duplicates
                 if str(num) in queue.job_ids or num in queue.job_ids:
-                    print("[bug #{0}] already running on queue: {1}".format(
-                        num, queue_name))
+                    print(
+                        "[bug #{0}] already running on queue: {1}".format(
+                            num, queue_name
+                        )
+                    )
                     continue
 
                 print("[bug #{0}] fed to queue: {1}".format(num, queue_name))
-                queue.enqueue(test_bug, at_front=bug.security, job_timeout="4d", args=(
-                    bug, num, queue_name, bug.atoms))
+                queue.enqueue(
+                    test_bug,
+                    at_front=bug.security,
+                    job_timeout="4d",
+                    args=(bug, num, queue_name, bug.atoms),
+                )
 
         # Don't touch this bug in future
         wrangled_bugs.append(num)
 
     print("Sleeping for 2 hours...")
-    time.sleep(60*2)
+    time.sleep(60 * 2)
