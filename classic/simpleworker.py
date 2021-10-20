@@ -11,7 +11,7 @@ from nattka.bugzilla import *
 
 # Configuration
 type = "kw"
-arch = "arm64"
+arch = "arm64".replace("~", "")
 machine = "sam-box1"
 bugzilla_url = "https://bugs.gentoo.org/"
 bugzilla_api_key = ""
