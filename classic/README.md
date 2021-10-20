@@ -2,7 +2,7 @@
 
 Currently, `simpleworker.py` will:
 
-1. Grab any open bugs from Bugzilla for the given architecture, ignoring bugs with a sepcific tag used
+1. Grab any open bugs from Bugzilla for the given architecture, ignoring bugs with a specific tag used
 to show e.g. another worker is processing this bug.
 
 2. Run `tatt` on it to generate testing scripts.
