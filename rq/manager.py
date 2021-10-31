@@ -68,9 +68,9 @@ def bug_ready(bug, num):
         # if this particular arch is in CC or not. If it's not, we could include it.
         results = nattka_bugzilla.find_bugs(bugs=bug.depends, unresolved=True)
 
-    if results.items():
-        print("[bug #{0}] blocker bugs; skipping".format(num))
-        return False
+        if results.items():
+            print("[bug #{0}] blocker bugs; skipping".format(num))
+            return False
 
     return True
 
