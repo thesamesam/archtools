@@ -90,7 +90,7 @@ while True:
             continue
 
         for arch in arches:
-            if arch in bug.cc:
+            if arch in [cc.replace("@gentoo.org", "") for cc in bug.cc]:
                 # Queue it up for this arch!
                 queue_name = arch
 
